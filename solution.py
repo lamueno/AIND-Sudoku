@@ -14,7 +14,7 @@ def eliminate_peer_possibilities_for_naked_twins(values, unit, twins_value):
     return values
 
 
-def naked_twins(values):
+def naked_twins(values, diag=False):
     """Eliminate values using the naked twins strategy.
     Args:
         values(dict): a dictionary of the form {'box_name': '123456789', ...}
@@ -22,9 +22,13 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
+    if diag:
+        unit_list = diag_unitlist
+    else:
+        unit_list = unitlist
 
     # Find all instances of naked twins
-    for unit in unitlist:
+    for unit in unit_list:
         seen = set()
         two_digits_place = [box for box in unit if len(values[box]) == 2]
         for box in two_digits_place:
@@ -36,27 +40,37 @@ def naked_twins(values):
     return values
 
 
-def eliminate(values):
+def eliminate(values, diag=False):
     """
     Go through all the boxes, and whenever there is a box with a value, eliminate this value from the values of all its peers.
     Input: A sudoku in dictionary form.
     Output: The resulting sudoku in dictionary form.
     """
+    if diag:
+        _peers = peers
+    else:
+        _peers = diag_peers
+
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     for box in solved_values:
         digit = values[box]
-        for peer in peers[box]:
+        for peer in _peers[box]:
             values[peer] = values[peer].replace(digit, '')
     return values
 
 
-def only_choice(values):
+def only_choice(values, diag=False):
     """
     Go through all the units, and whenever there is a unit with a value that only fits in one box, assign the value to this box.
     Input: A sudoku in dictionary form.
     Output: The resulting sudoku in dictionary form.
     """
-    for unit in unitlist:
+    if diag:
+        unit_list = diag_unitlist
+    else:
+        unit_list = unitlist
+
+    for unit in unit_list:
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
@@ -64,7 +78,7 @@ def only_choice(values):
     return values
 
 
-def reduce_puzzle(values):
+def reduce_puzzle(values, is_diag=False):
     """
     Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
     If the sudoku is solved, return the sudoku.
@@ -77,8 +91,8 @@ def reduce_puzzle(values):
     while not stalled:
         solved_values_before = len(
             [box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(values)
-        values = only_choice(values)
+        values = eliminate(values, is_diag)
+        values = only_choice(values, is_diag)
         solved_values_after = len(
             [box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
@@ -87,10 +101,10 @@ def reduce_puzzle(values):
     return values
 
 
-def search(values):
+def search(values, is_diag=False):
     # Using depth-first search and propagation, create a search tree and solve the sudoku.
     # First, reduce the puzzle using the previous function
-    values = reduce_puzzle(values)
+    values = reduce_puzzle(values, is_diag)
     if values is False:
         return False  # Failed earlier
     if all(len(values[s]) == 1 for s in boxes):
@@ -101,7 +115,7 @@ def search(values):
     for value in values[s]:
         new_sudoku = values.copy()
         new_sudoku[s] = value
-        attempt = search(new_sudoku)
+        attempt = search(new_sudoku, is_diag)
         if attempt:
             return attempt
 

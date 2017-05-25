@@ -1,3 +1,5 @@
+assignments = []
+
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
@@ -14,6 +16,12 @@ square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI')
 unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
+
+diag_units = [[r + c for r, c in zip(rows, cols)], [
+    r + c for r, c in zip(rows, cols[::-1])]]
+diag_unitlist = unitlist + diag_units
+diag_units = dict((s, [u for u in diag_unitlist if s in u]) for s in boxes)
+diag_peers = dict((s, set(sum(diag_units[s], [])) - set([s])) for s in boxes)
 
 
 def display(values):
@@ -40,7 +48,8 @@ def grid_values(grid):
     Returns:
         A grid in dictionary form
             Keys: The boxes, e.g., 'A1'
-            Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
+            Values: The value in each box, e.g., '8'. 
+            If the box has no value, then the value will be '123456789'.
     """
     assert len(grid) == 81
     return dict(zip(boxes, ['123456789' if v == '.' else v for v in grid]))
