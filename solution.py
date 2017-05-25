@@ -3,6 +3,17 @@ from utils import *
 assignments = []
 
 
+def eliminate_peer_possibilities_for_naked_twins(values, unit, twins_value):
+    """Eliminate twin_values in other boxes in the unit
+    """
+
+    for box in unit:
+        if len(values[box]) > 2:
+            for digit in twins_value:
+                values[box] = values[box].replace(digit, '')
+    return values
+
+
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
     Args:
@@ -13,8 +24,16 @@ def naked_twins(values):
     """
 
     # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
-    pass
+    for unit in unitlist:
+        seen = set()
+        two_digits_place = [box for box in unit if len(values[box]) == 2]
+        for box in two_digits_place:
+            if values[box] not in seen:
+                seen.add(values[box])
+            else:  # Found the naked twins!
+                values = eliminate_peer_possibilities_for_naked_twins(
+                    values, unit, values[box])
+    return values
 
 
 def eliminate(values):
@@ -69,7 +88,7 @@ def reduce_puzzle(values):
 
 
 def search(values):
-    "Using depth-first search and propagation, create a search tree and solve the sudoku."
+    # Using depth-first search and propagation, create a search tree and solve the sudoku.
     # First, reduce the puzzle using the previous function
     values = reduce_puzzle(values)
     if values is False:
