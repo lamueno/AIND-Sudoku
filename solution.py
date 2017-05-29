@@ -25,6 +25,7 @@ diag_unitlist = unitlist + diag_units
 diag_units = dict((s, [u for u in diag_unitlist if s in u]) for s in boxes)
 diag_peers = dict((s, set(sum(diag_units[s], [])) - set([s])) for s in boxes)
 
+
 def display(values):
     """
     Display the values as a 2-D grid.
@@ -49,7 +50,7 @@ def grid_values(grid):
     Returns:
         A grid in dictionary form
             Keys: The boxes, e.g., 'A1'
-            Values: The value in each box, e.g., '8'. 
+            Values: The value in each box, e.g., '8'.
             If the box has no value, then the value will be '123456789'.
     """
     assert len(grid) == 81
@@ -73,18 +74,6 @@ def assign_value(values, box, value):
     return values
 
 
-
-def eliminate_peer_possibilities_for_naked_twins(values, unit, twins_value):
-    """Eliminate twin_values in other boxes in the unit
-    """
-
-    for box in unit:
-        if len(values[box]) > 2:
-            for digit in twins_value:
-                values[box] = values[box].replace(digit, '')
-    return values
-
-
 def naked_twins(values, diag=False):
     """Eliminate values using the naked twins strategy.
     Args:
@@ -99,6 +88,7 @@ def naked_twins(values, diag=False):
         unit_list = unitlist
 
     # Find all instances of naked twins
+    twins = []
     for unit in unit_list:
         seen = set()
         two_digits_place = [box for box in unit if len(values[box]) == 2]
@@ -106,8 +96,14 @@ def naked_twins(values, diag=False):
             if values[box] not in seen:
                 seen.add(values[box])
             else:  # Found the naked twins!
-                values = eliminate_peer_possibilities_for_naked_twins(
-                    values, unit, values[box])
+                twins.append((unit, values[box]))
+
+    # Reduce values according to naked twins
+    for unit, twins_value in twins:
+        for box in unit:
+            if len(values[box]) > 1 and values[box] != twins_value:
+                for digit in twins_value:
+                    values[box] = values[box].replace(digit, '')
     return values
 
 
